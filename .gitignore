@@ -23,7 +23,7 @@ pnpm-lock.yaml
 # =========================
 # Bulk media folders — ignore all files but keep folder
 # =========================
-tracker.json*
+tracker.json
 
 # output bulk images
 base_folder/*
