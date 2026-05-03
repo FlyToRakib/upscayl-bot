@@ -7,7 +7,20 @@ const APP_PATH = "C:\\Program Files\\Upscayl\\Upscayl.exe";
 const BASE_FOLDER = path.join(__dirname, 'base_folder');
 const DONE_FOLDER = path.join(__dirname, 'upscaled');
 const TRACKER_FILE = path.join(__dirname, 'tracker.json');
-const SCALE = '2'; // Upscale factor: '1' to '16'
+const SCALE = '4'; // Upscale factor: '1' to '16'
+const MODEL = 'high-fidelity'; // 'standard' or 'high-fidelity'
+
+// Model selector map: selected = button shown when active, option = dropdown item to click
+const MODELS = {
+    'standard': {
+        selected: 'Upscayl Standard',
+        option: 'Upscayl Standard Suitable for',
+    },
+    'high-fidelity': {
+        selected: 'High Fidelity',
+        option: 'High Fidelity For all kinds',
+    },
+};
 
 async function runAutomation() {
     // 1. Initialize Tracking & Folders
@@ -47,15 +60,17 @@ async function runAutomation() {
             await window.getByRole('button', { name: 'Select Folder' }).click();
             await window.waitForTimeout(2000); // Wait for folder selection UI to update
 
-            // Settings: Select High Fidelity model (only if not already selected)
-            const standardBtn = window.getByRole('button', { name: 'Upscayl Standard' });
-            const isStandard = await standardBtn.isVisible({ timeout: 2000 }).catch(() => false);
-            if (isStandard) {
-                await standardBtn.click();
-                await window.getByRole('button', { name: 'High Fidelity For all kinds' }).click();
-                console.log("🔧 Switched to High Fidelity model.");
+            // Settings: Select the configured model
+            const desired = MODELS[MODEL];
+            const alreadySelected = await window.getByRole('button', { name: desired.selected }).isVisible({ timeout: 2000 }).catch(() => false);
+            if (alreadySelected) {
+                console.log(`✅ ${desired.selected} model already selected.`);
             } else {
-                console.log("✅ High Fidelity model already selected.");
+                // Click whichever model button is currently showing to open the dropdown
+                const otherModel = Object.values(MODELS).find(m => m.selected !== desired.selected);
+                await window.getByRole('button', { name: otherModel.selected }).click();
+                await window.getByRole('button', { name: desired.option }).click();
+                console.log(`🔧 Switched to ${desired.selected} model.`);
             }
             await window.waitForTimeout(1000); // Wait for model change to settle
 
