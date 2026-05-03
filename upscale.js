@@ -7,6 +7,7 @@ const APP_PATH = "C:\\Program Files\\Upscayl\\Upscayl.exe";
 const BASE_FOLDER = path.join(__dirname, 'base_folder');
 const DONE_FOLDER = path.join(__dirname, 'upscaled');
 const TRACKER_FILE = path.join(__dirname, 'tracker.json');
+const SCALE = '2'; // Upscale factor: '1' to '16'
 
 async function runAutomation() {
     // 1. Initialize Tracking & Folders
@@ -58,13 +59,10 @@ async function runAutomation() {
             }
             await window.waitForTimeout(1000); // Wait for model change to settle
 
-            // Set scale to 2x (range slider — can't use fill(), must set via JS)
+            // Set scale value
             const scaleInput = window.getByPlaceholder('Example:');
-            await scaleInput.evaluate(el => {
-                el.value = '2';
-                el.dispatchEvent(new Event('input', { bubbles: true }));
-                el.dispatchEvent(new Event('change', { bubbles: true }));
-            });
+            await scaleInput.fill(SCALE);
+            console.log(`🔍 Scale set to ${SCALE}x.`);
 
             // Start Upscayling
             await window.getByRole('button', { name: 'Upscayl 🚀' }).click();
