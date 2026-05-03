@@ -1,0 +1,50 @@
+# =========================
+# Node.js
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Optional: package lock files
+yarn.lock
+pnpm-lock.yaml
+
+# =========================
+# Playwright
+# =========================
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+
+# =========================
+# Bulk media folders — ignore all files but keep folder
+# =========================
+
+# output bulk images
+base_folder/*
+!base_folder/.gitkeep
+
+upscaled/*
+!upscaled/.gitkeep
+
+
+# =========================
+# Optional OS / IDE files
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+#*.log
+
+# =========================
+# Optional temporary files
+# =========================
+*.tmp
+*.temp
