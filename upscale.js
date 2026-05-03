@@ -7,7 +7,7 @@ const APP_PATH = "C:\\Program Files\\Upscayl\\Upscayl.exe";
 const BASE_FOLDER = path.join(__dirname, 'base_folder');
 const DONE_FOLDER = path.join(__dirname, 'upscaled');
 const TRACKER_FILE = path.join(__dirname, 'tracker.json');
-const SCALE = '4'; // Upscale factor: '1' to '16'
+const SCALE = '2'; // Upscale factor: '1' to '16'
 const MODEL = 'high-fidelity'; // 'standard' or 'high-fidelity'
 
 // Model selector map: selected = button shown when active, option = dropdown item to click

@@ -4,16 +4,16 @@ Automated batch image upscaling bot powered by [Playwright](https://playwright.d
 
 ## 📖 About
 
-Upscayl Bot launches the Upscayl Electron app via Playwright, automates the UI to enable batch mode, selects each folder, configures the upscaling model and scale, and waits for completion. Once done, it cleans up Upscayl's output subfolder, moves the processed folder to an `upscaled/` directory, and tracks progress in a JSON file so it can safely resume if interrupted.
+Upscayl Bot launches the Upscayl Electron app via Playwright, automates the UI to enable batch mode, selects each folder, configures the AI model and scale factor, and waits for completion. Once done, it cleans up Upscayl's output subfolder, moves the processed folder to `upscaled/`, and tracks progress in `tracker.json` so it can safely resume if interrupted.
 
 ### Key Features
 
 - **Fully Automated** — Launches Upscayl, configures settings, and processes folders without any manual interaction.
 - **Batch Processing** — Automatically iterates through all subfolders inside `base_folder/`.
-- **Resume Support** — Tracks completed folders in `processed_folders.json` so you can stop and restart without reprocessing.
+- **Resume Support** — Tracks completed folders in `tracker.json` so you can stop and restart without reprocessing.
 - **Auto Cleanup** — Moves upscaled images back into the original folder structure and removes Upscayl's temporary output directories.
-- **High Fidelity Model** — Automatically selects the "High Fidelity" AI model for best quality results.
-- **2x Upscale** — Configured to upscale images to 2× resolution by default.
+- **Configurable Model** — Switch between `standard` and `high-fidelity` AI models via a single config line.
+- **Configurable Scale** — Set any upscale factor from `1` to `16` via a single config line.
 
 ---
 
@@ -57,7 +57,7 @@ npx playwright install
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/upscayl-bot.git
+git clone https://github.com/FlyToRakib/upscayl-bot.git
 cd upscayl-bot
 ```
 
@@ -102,38 +102,10 @@ The bot will:
 1. Scan `base_folder/` for unprocessed subfolders
 2. Launch Upscayl for each folder
 3. Enable Batch mode and select the folder
-4. Set the model to **High Fidelity** and scale to **2×**
+4. Set the configured AI model and scale factor
 5. Wait for upscaling to complete
 6. Clean up output files and move the folder to `upscaled/`
-7. Update `processed_folders.json` with the completed folder name
-
----
-
-## 📁 Project Structure
-
-```
-upscayl-bot/
-├── base_folder/          # Input — place your image folders here
-│   └── .gitkeep
-├── upscaled/             # Output — processed folders are moved here
-│   └── .gitkeep
-├── upscale.js            # Main automation script (batch processor)
-├── upscayl.js            # Standalone test script (launch & screenshot)
-├── inspector.js          # Playwright Inspector for exploring Upscayl UI
-├── processed_folders.json           # Tracks which folders have been processed
-├── package.json          # Project dependencies
-├── .gitignore            # Git ignore rules
-└── README.md             # This file
-```
-
-### File Descriptions
-
-| File | Purpose |
-|---|---|
-| `upscale.js` | **Main script.** Automates the full batch upscaling pipeline. |
-| `upscayl.js` | **Test script.** Launches Upscayl, takes a screenshot, and closes. Useful for verifying Playwright can connect to the app. |
-| `inspector.js` | **Debug tool.** Opens the Playwright Inspector so you can click around Upscayl and discover UI selectors. |
-| `processed_folders.json` | **Progress tracker.** JSON array of folder names that have been successfully processed. |
+7. Update `tracker.json` with the completed folder name
 
 ---
 
@@ -145,7 +117,9 @@ All configuration is defined at the top of `upscale.js`:
 const APP_PATH = "C:\\Program Files\\Upscayl\\Upscayl.exe";  // Path to Upscayl
 const BASE_FOLDER = path.join(__dirname, 'base_folder');       // Input folder
 const DONE_FOLDER = path.join(__dirname, 'upscaled');          // Output folder
-const TRACKER_FILE = path.join(__dirname, 'processed_folders.json');      // Progress tracker
+const TRACKER_FILE = path.join(__dirname, 'tracker.json');     // Progress tracker
+const SCALE = '2';                                             // Upscale factor: '1' to '16'
+const MODEL = 'high-fidelity';                                 // 'standard' or 'high-fidelity'
 ```
 
 | Setting | Default | Description |
@@ -153,7 +127,16 @@ const TRACKER_FILE = path.join(__dirname, 'processed_folders.json');      // Pro
 | `APP_PATH` | `C:\Program Files\Upscayl\Upscayl.exe` | Full path to the Upscayl executable |
 | `BASE_FOLDER` | `./base_folder` | Directory containing image subfolders to process |
 | `DONE_FOLDER` | `./upscaled` | Directory where processed folders are moved |
-| `TRACKER_FILE` | `./processed_folders.json` | JSON file tracking completed folders |
+| `TRACKER_FILE` | `./tracker.json` | JSON file tracking completed folders |
+| `SCALE` | `'2'` | Upscale factor — any value from `'1'` to `'16'` |
+| `MODEL` | `'high-fidelity'` | AI model — `'standard'` or `'high-fidelity'` |
+
+### Available Models
+
+| Model Key | UI Name | Best For |
+|---|---|---|
+| `'standard'` | Upscayl Standard | General purpose, suitable for most images |
+| `'high-fidelity'` | High Fidelity | All kinds of images, highest quality output |
 
 ---
 
@@ -164,7 +147,7 @@ const TRACKER_FILE = path.join(__dirname, 'processed_folders.json');      // Pro
 Verify Playwright can launch and connect to Upscayl:
 
 ```bash
-node upscayl.js
+node upscayl_test.js
 ```
 
 This will launch the app, take a screenshot (`upscayl_ready.png`), wait 10 seconds, and close.
@@ -186,52 +169,6 @@ Use Playwright's built-in codegen tool to record interactions:
 ```bash
 npx playwright codegen --target electron "C:\Program Files\Upscayl\Upscayl.exe"
 ```
-
----
-
-## 🔄 Resuming / Reprocessing
-
-### Resume After Interruption
-
-Simply run `node upscale.js` again. The bot reads `status.json` and skips any folders already listed there.
-
-### Reprocess a Specific Folder
-
-1. Open `status.json`
-2. Remove the folder name from the array
-3. Move the folder back from `upscaled/` to `base_folder/`
-4. Run `node upscale.js`
-
-### Reprocess Everything
-
-Delete or empty `status.json` and move all folders back to `base_folder/`:
-
-```bash
-echo [] > status.json
-```
-
----
-
-## ⚠️ Troubleshooting
-
-| Issue | Solution |
-|---|---|
-| `TimeoutError: waiting for button` | Upscayl UI may have changed. Run `node inspector.js` to check current button names/roles. |
-| Bot can't find Upscayl | Verify `APP_PATH` in `upscale.js` matches your Upscayl install location. |
-| `No new folders to process` | All folders in `base_folder/` are already listed in `status.json`. Remove entries to reprocess. |
-| Upscaling seems stuck | The bot polls every 5 seconds. Large batches may take a long time. Check Upscayl's progress bar. |
-| `ENOENT` file errors | Ensure `base_folder/` and `upscaled/` directories exist. |
-
----
-
-## 📦 Dependencies
-
-| Package | Version | Purpose |
-|---|---|---|
-| [playwright](https://playwright.dev/) | ^1.59.1 | Electron app automation |
-| [fs-extra](https://github.com/jprichardson/node-fs-extra) | ^11.3.4 | Enhanced file system operations |
-
----
 
 ## 📄 License
 
